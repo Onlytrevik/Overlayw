@@ -4,69 +4,82 @@
 <meta charset="UTF-8">
 <title>Auction Controller</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Orbitron:wght@700;900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;600;700;800;900&display=swap');
   *{margin:0;padding:0;box-sizing:border-box;}
-  :root{--bg:#0a0a0a;--surface:#141414;--card:#1a1a1a;--border:#242424;--gold:#FFD700;--green:#00C853;--red:#FF5252;--blue:#1565C0;--purple:#7c2adc;--text:#fff;--muted:rgba(255,255,255,0.4);}
-  body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);min-height:100vh;padding:20px;}
-  .header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);max-width:960px;}
-  .logo{background:#FE2C55;color:#fff;font-size:18px;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  h1{font-size:18px;font-weight:800;}
-  .sub{font-size:11px;color:var(--muted);margin-top:2px;}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:960px;}
+  :root{--bg:#0a0a0a;--card:#1a1a1a;--border:#242424;--gold:#FFD700;--green:#00C853;--red:#FF5252;--blue:#1565C0;--muted:rgba(255,255,255,0.4);}
+  body{background:var(--bg);font-family:'Inter',sans-serif;color:#fff;min-height:100vh;padding:24px;}
+
+  h1{font-size:20px;font-weight:800;margin-bottom:4px;}
+  .sub{font-size:12px;color:var(--muted);margin-bottom:24px;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:800px;}
   .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;}
   .card.full{grid-column:1/-1;}
   .ct{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
-  .ct::before{content:'';width:3px;height:13px;background:var(--gold);border-radius:2px;display:block;}
+  .ct::before{content:'';width:3px;height:13px;background:var(--gold);border-radius:2px;}
+
+  /* CLOCK */
   .clock{font-family:'Orbitron',monospace;font-size:52px;font-weight:900;color:var(--green);letter-spacing:3px;line-height:1;margin-bottom:8px;transition:color .3s;}
   .clock.snipe{color:#c47fff;}.clock.urgent{color:var(--red)!important;animation:shake .4s infinite;}.clock.idle{color:#2a2a2a;}
   @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+
   .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;transition:all .3s;}
   .pill.auction{background:rgba(0,200,83,.12);color:var(--green);border:1px solid rgba(0,200,83,.3);}
   .pill.snipe{background:rgba(124,42,220,.15);color:#c47fff;border:1px solid rgba(124,42,220,.4);}
   .pill.ended{background:rgba(255,82,82,.1);color:var(--red);border:1px solid rgba(255,82,82,.3);}
-  .pill.idle{background:var(--surface);color:var(--muted);border:1px solid var(--border);}
+  .pill.idle{background:#141414;color:var(--muted);border:1px solid var(--border);}
   .pdot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:blink 1.2s infinite;}
   @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
   .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
-  .stat{background:var(--surface);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border);}
+  .stat{background:#141414;border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border);}
   .sv{font-size:20px;font-weight:900;}.sl{font-size:10px;color:var(--muted);font-weight:600;margin-top:2px;}
-  .ig{margin-bottom:10px;}.il{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;display:block;}
-  .ir{display:flex;align-items:center;gap:8px;}
-  input[type=number],input[type=text]{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--gold);font-size:15px;font-weight:800;font-family:'Inter',sans-serif;padding:9px 12px;width:100%;outline:none;transition:border-color .2s;}
-  input[type=number]:focus,input[type=text]:focus{border-color:var(--gold);}
-  input[type=text]{color:var(--text);}
-  .unit{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap;}
+
   .br{display:flex;gap:8px;margin-top:6px;}
-  .btn{flex:1;padding:12px 8px;border-radius:12px;border:none;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
+  .btn{flex:1;padding:13px 8px;border-radius:12px;border:none;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
   .btn:active{transform:scale(.96);}.btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important;}
   .g{background:var(--green);color:#000;}.g:hover:not(:disabled){background:#00E676;}
   .r{background:rgba(255,82,82,.15);color:var(--red);border:1px solid rgba(255,82,82,.3);}.r:hover:not(:disabled){background:rgba(255,82,82,.25);}
-  .gr{background:var(--surface);color:var(--muted);border:1px solid var(--border);}.gr:hover:not(:disabled){background:#222;color:var(--text);}
+  .gr{background:#141414;color:var(--muted);border:1px solid var(--border);}.gr:hover:not(:disabled){background:#1e1e1e;color:#fff;}
   .p{background:rgba(124,42,220,.2);color:#c47fff;border:1px solid rgba(124,42,220,.4);}.p:hover:not(:disabled){background:rgba(124,42,220,.35);}
   .bb{background:var(--blue);color:#fff;border:none;}.bb:hover:not(:disabled){background:#1976D2;}
-  .btn-add{background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:20px;padding:0 16px;cursor:pointer;flex-shrink:0;transition:all .15s;}
-  .btn-add:hover{background:#1976D2;}.btn-add:active{transform:scale(.94);}
+
+  .ig{margin-bottom:10px;}
+  .il{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;display:block;}
+  .ir{display:flex;align-items:center;gap:8px;}
+  input[type=number],input[type=text]{background:#141414;border:1px solid var(--border);border-radius:10px;color:var(--gold);font-size:15px;font-weight:800;font-family:'Inter',sans-serif;padding:9px 12px;width:100%;outline:none;transition:border-color .2s;}
+  input[type=number]:focus,input[type=text]:focus{border-color:var(--gold);}
+  input[type=text]{color:#fff;}
+  .unit{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap;}
+
+  .badd{background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:20px;padding:0 16px;cursor:pointer;transition:all .15s;flex-shrink:0;}
+  .badd:hover{background:#1976D2;}.badd:active{transform:scale(.94);}
+
   .blist{display:flex;flex-direction:column;gap:6px;min-height:36px;}
-  .brow{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;animation:fi .3s ease;}
-  @keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+  .brow{display:flex;align-items:center;gap:10px;background:#141414;border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
   .brow.r1{border-color:#B8860B;background:#1a1400;}.brow.r2{border-color:#444;}.brow.r3{border-color:#5a3020;background:#130c08;}
   .brank{font-size:18px;flex-shrink:0;}.bname{flex:1;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .bcoins{font-size:14px;font-weight:800;color:var(--gold);}
-  .bgift{font-size:10px;color:var(--muted);max-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .bdel{background:none;border:none;color:#555;font-size:16px;cursor:pointer;padding:2px 6px;border-radius:6px;flex-shrink:0;}
   .bdel:hover{background:rgba(255,82,82,.15);color:var(--red);}
   .empty{text-align:center;color:var(--muted);font-size:12px;padding:16px 0;}
-  .log{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;height:110px;overflow-y:auto;font-size:11px;line-height:1.8;font-family:monospace;color:var(--muted);}
-  .log .g{color:var(--gold);}.log .i{color:#4fc3f7;}.log .s{color:#c47fff;}.log .e{color:var(--red);}
-  .saved{display:none;background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.3);border-radius:8px;padding:8px 12px;color:var(--green);font-size:12px;font-weight:700;text-align:center;margin-top:8px;}
-  .hint{font-size:10px;color:var(--muted);margin-top:6px;text-align:center;}
+
+  .log{background:#141414;border:1px solid var(--border);border-radius:10px;padding:10px 12px;height:100px;overflow-y:auto;font-size:11px;line-height:1.8;font-family:monospace;color:var(--muted);}
+  .log .g{color:var(--gold);}.log .i{color:#4fc3f7;}.log .s{color:#c47fff;}
+
+  /* OVERLAY LINK */
+  .link-card{background:linear-gradient(135deg,rgba(21,101,192,.15),rgba(124,42,220,.1));border:1px solid rgba(21,101,192,.4);border-radius:14px;padding:16px 18px;}
+  .link-title{font-size:11px;font-weight:700;color:#4fc3f7;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+  .linkbox{background:#050d1a;border:1px solid #1a3a5c;border-radius:10px;padding:12px;font-size:11px;color:#4fc3f7;font-family:monospace;word-break:break-all;line-height:1.7;margin-bottom:8px;user-select:all;cursor:text;}
+  .copybtn{width:100%;background:#1565C0;border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:11px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+  .copybtn:hover{background:#1976D2;}.copybtn.ok{background:#00C853;color:#000;}
+  .hint{font-size:10px;color:var(--muted);margin-top:8px;line-height:1.6;}
 </style>
 </head>
 <body>
-<div class="header">
-  <div class="logo">♟</div>
-  <div><h1>Auction Controller</h1><div class="sub">Einstellungen ändern → Overlay wird sofort aktualisiert</div></div>
-</div>
+
+<h1>🎯 Auction Controller</h1>
+<p class="sub">Einstellungen ändern → Link kopieren → in TikTok LIVE Studio einfügen</p>
 
 <div class="grid">
 
@@ -93,29 +106,34 @@
   <!-- EINSTELLUNGEN -->
   <div class="card">
     <div class="ct">Einstellungen</div>
-    <div class="ig"><label class="il">⏱ Auktions-Dauer</label><div class="ir"><input type="number" id="cfgDuration" value="60" min="10" max="3600"><span class="unit">Sek.</span></div></div>
-    <div class="ig"><label class="il">⚡ Snipe Delay</label><div class="ir"><input type="number" id="cfgSnipe" value="30" min="5" max="600"><span class="unit">Sek.</span></div></div>
-    <div class="ig"><label class="il">🪙 Minimum Coins</label><div class="ir"><input type="number" id="cfgMin" value="1" min="1"><span class="unit">Coins</span></div></div>
-    <button class="btn bb" style="width:100%;margin-top:6px;padding:12px;" onclick="saveSettings()">✓ Speichern → Overlay updaten</button>
-    <div class="saved" id="saved">✅ Overlay wurde aktualisiert!</div>
-    <p class="hint">Das Overlay liest die Einstellungen automatisch.</p>
+    <div class="ig"><label class="il">⏱ Auktions-Dauer</label><div class="ir"><input type="number" id="cfgDuration" value="60" min="10" max="3600" oninput="updateLink()"><span class="unit">Sek.</span></div></div>
+    <div class="ig"><label class="il">⚡ Snipe Delay</label><div class="ir"><input type="number" id="cfgSnipe" value="30" min="5" max="600" oninput="updateLink()"><span class="unit">Sek.</span></div></div>
+    <div class="ig"><label class="il">🪙 Minimum Coins</label><div class="ir"><input type="number" id="cfgMin" value="1" min="1" oninput="updateLink()"><span class="unit">Coins</span></div></div>
+
+    <!-- OVERLAY LINK -->
+    <div class="link-card" style="margin-top:12px;">
+      <div class="link-title">📺 Overlay Link für TikTok LIVE Studio</div>
+      <div class="linkbox" id="linkbox">…</div>
+      <button class="copybtn" id="copybtn" onclick="copyLink()">📋 Link kopieren</button>
+      <p class="hint">Diesen Link in TikTok LIVE Studio als Browser-Quelle einfügen.<br>Breite: 300 | Höhe: 450 | Hintergrund: transparent</p>
+    </div>
   </div>
 
-  <!-- MANUELL -->
+  <!-- MANUELLES GEBOT -->
   <div class="card">
     <div class="ct">Gebot manuell hinzufügen</div>
     <div style="display:flex;gap:8px;">
       <input type="text"   id="bidName"  placeholder="TikTok Name" maxlength="40" style="flex:1.5;">
       <input type="number" id="bidCoins" placeholder="Coins" min="1" style="width:90px;flex:0 0 90px;">
-      <button class="btn-add" onclick="manualBid()">+</button>
+      <button class="badd" onclick="manualBid()">+</button>
     </div>
-    <p style="font-size:10px;color:var(--muted);margin-top:6px;">Enter drücken zum Hinzufügen</p>
+    <p style="font-size:10px;color:var(--muted);margin-top:6px;">Enter = Hinzufügen | Leertaste = Start/Pause | R = Reset</p>
   </div>
 
   <!-- LOG -->
   <div class="card">
     <div class="ct">Live Log</div>
-    <div class="log" id="log">Bereit…<br></div>
+    <div class="log" id="log">Bereit…</div>
   </div>
 
   <!-- BIETER -->
@@ -125,28 +143,78 @@
   </div>
 
 </div>
+
 <script>
+// ══ STATE ══════════════════════════════════════
 let bidders=[],timeLeft=60,phase='idle',timer=null,paused=false;
-const medals=['🥇','🥈','🥉'],fb=['🎮','👑','🔥','💎','🦁','⭐','🐯','🎯','🌟','🚀'];
+const medals=['🥇','🥈','🥉'];
+const fb=['🎮','👑','🔥','💎','🦁','⭐','🐯','🎯','🌟','🚀'];
 
-function getCfg(){return{duration:parseInt(document.getElementById('cfgDuration').value)||60,snipe:parseInt(document.getElementById('cfgSnipe').value)||30,minimum:parseInt(document.getElementById('cfgMin').value)||1};}
+// ══ CONFIG ═════════════════════════════════════
+function getCfg(){
+  return{
+    duration:parseInt(document.getElementById('cfgDuration').value)||60,
+    snipe:   parseInt(document.getElementById('cfgSnipe').value)||30,
+    minimum: parseInt(document.getElementById('cfgMin').value)||1,
+  };
+}
 
-function loadSettings(){try{const s=JSON.parse(localStorage.getItem('auctionCfg'));if(!s)return;document.getElementById('cfgDuration').value=s.duration||60;document.getElementById('cfgSnipe').value=s.snipe||30;document.getElementById('cfgMin').value=s.minimum||1;}catch(e){}}
+// Load saved settings
+try{
+  const s=JSON.parse(localStorage.getItem('auctionCfg')||'{}');
+  if(s.duration)document.getElementById('cfgDuration').value=s.duration;
+  if(s.snipe)   document.getElementById('cfgSnipe').value=s.snipe;
+  if(s.minimum) document.getElementById('cfgMin').value=s.minimum;
+}catch(e){}
 
-function saveSettings(){
+// ══ OVERLAY LINK ═══════════════════════════════
+// The overlay URL contains all state as a hash
+// Overlay polls this URL and reads the hash every second
+function getOverlayBase(){
+  return location.href.replace('controller.html','overlay.html').split('?')[0].split('#')[0];
+}
+
+function buildHash(){
+  const c=getCfg();
+  const state={
+    phase, timeLeft,
+    duration:c.duration, snipe:c.snipe, minimum:c.minimum,
+    bidders: bidders.map(b=>({n:b.name,c:b.coins,g:b.gift||'',e:b.emoji||'🎮'})),
+    ts:Date.now()
+  };
+  return encodeURIComponent(JSON.stringify(state));
+}
+
+function updateLink(){
   const c=getCfg();
   localStorage.setItem('auctionCfg',JSON.stringify(c));
+  const url=getOverlayBase()+'?duration='+c.duration+'&snipe='+c.snipe+'&minimum='+c.minimum;
+  document.getElementById('linkbox').textContent=url;
+  // Push live state
   pushState();
-  const el=document.getElementById('saved');
-  el.style.display='block';
-  setTimeout(()=>el.style.display='none',2500);
-  addLog('i',`Gespeichert: ${c.duration}s | Snipe ${c.snipe}s | Min ${c.minimum}`);
 }
 
 function pushState(){
-  localStorage.setItem('auctionState',JSON.stringify({phase,timeLeft,bidders,cfg:getCfg(),ts:Date.now()}));
+  // Write state to localStorage so overlay.html on same domain can read it
+  const c=getCfg();
+  localStorage.setItem('auctionLive',JSON.stringify({
+    phase,timeLeft,
+    duration:c.duration,snipe:c.snipe,minimum:c.minimum,
+    bidders:bidders.map(b=>({n:b.name,c:b.coins,g:b.gift||'',e:b.emoji||'🎮'})),
+    ts:Date.now()
+  }));
 }
 
+function copyLink(){
+  const txt=document.getElementById('linkbox').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn=document.getElementById('copybtn');
+    btn.textContent='✅ Kopiert!';btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent='📋 Link kopieren';btn.classList.remove('ok');},2000);
+  });
+}
+
+// ══ TIMER ══════════════════════════════════════
 function doStart(){
   if(phase==='auction'||phase==='snipe')return;
   const c=getCfg();phase='auction';timeLeft=c.duration;paused=false;
@@ -155,7 +223,7 @@ function doStart(){
   document.getElementById('btnPause').textContent='⏸ PAUSE';
   setPhaseUI('auction');clearInterval(timer);
   timer=setInterval(tick,1000);setClock(timeLeft);pushState();
-  addLog('i',`Auktion gestartet (${c.duration}s)`);
+  addLog('i','Auktion gestartet ('+c.duration+'s)');
 }
 
 function doPause(){
@@ -168,21 +236,33 @@ function doPause(){
 function doSnipe(){
   const c=getCfg();phase='snipe';timeLeft=c.snipe;
   setPhaseUI('snipe');setClock(timeLeft);pushState();
-  addLog('s',`Snipe Delay! (${c.snipe}s)`);
+  addLog('s','⚡ Snipe Delay! ('+c.snipe+'s)');
 }
 
 function doReset(){
-  clearInterval(timer);phase='idle';paused=false;bidders=[];timeLeft=getCfg().duration;
+  clearInterval(timer);phase='idle';paused=false;bidders=[];
+  timeLeft=getCfg().duration;
   document.getElementById('btnStart').disabled=false;
   document.getElementById('btnSnipe').disabled=true;
   document.getElementById('btnPause').textContent='⏸ PAUSE';
-  setPhaseUI('idle');setClock(timeLeft);renderBidders();pushState();addLog('i','Reset');
+  setPhaseUI('idle');setClock(timeLeft);renderBidders();pushState();
+  addLog('i','Reset');
 }
 
 function tick(){
   if(paused)return;timeLeft--;setClock(timeLeft);pushState();
-  if(phase==='auction'&&timeLeft<=0){const c=getCfg();phase='snipe';timeLeft=c.snipe;setPhaseUI('snipe');setClock(timeLeft);addLog('s',`Snipe Delay! (${c.snipe}s)`);}
-  else if(phase==='snipe'&&timeLeft<=0){clearInterval(timer);phase='ended';setPhaseUI('ended');document.getElementById('btnStart').disabled=false;document.getElementById('btnSnipe').disabled=true;pushState();const w=bidders[0];addLog('i',w?`🏆 ${w.name}: ${w.coins} Coins`:'Keine Gebote');}
+  if(phase==='auction'&&timeLeft<=0){
+    const c=getCfg();phase='snipe';timeLeft=c.snipe;
+    setPhaseUI('snipe');setClock(timeLeft);
+    addLog('s','⚡ Snipe Delay! ('+c.snipe+'s)');
+  } else if(phase==='snipe'&&timeLeft<=0){
+    clearInterval(timer);phase='ended';setPhaseUI('ended');
+    document.getElementById('btnStart').disabled=false;
+    document.getElementById('btnSnipe').disabled=true;
+    pushState();
+    const w=bidders[0];
+    addLog('i',w?'🏆 Gewinner: '+w.name+' ('+w.coins+' Coins)':'Keine Gebote');
+  }
 }
 
 function setClock(s){
@@ -193,15 +273,17 @@ function setClock(s){
   if(phase==='snipe'&&s>10)el.classList.add('snipe');
   else if(s<=10&&s>0&&phase!=='idle'&&phase!=='ended')el.classList.add('urgent');
   else if(phase==='idle'||phase==='ended')el.classList.add('idle');
-  document.getElementById('sPhase').textContent=phase==='auction'?'Auktion':phase==='snipe'?'Snipe':phase==='ended'?'Ende':'—';
+  document.getElementById('sPhase').textContent=
+    phase==='auction'?'Auktion':phase==='snipe'?'Snipe':phase==='ended'?'Ende':'—';
 }
 
 function setPhaseUI(p){
-  const pill=document.getElementById('pill'),txt=document.getElementById('pillTxt');
+  const pill=document.getElementById('pill'),t=document.getElementById('pillTxt');
   pill.className='pill '+p;
-  txt.textContent=p==='auction'?'Auktion läuft':p==='snipe'?'⚡ Snipe Delay':p==='ended'?'Beendet':'Bereit';
+  t.textContent=p==='auction'?'Auktion läuft':p==='snipe'?'⚡ Snipe Delay':p==='ended'?'Beendet':'Bereit';
 }
 
+// ══ BIDS ═══════════════════════════════════════
 function manualBid(){
   const name=document.getElementById('bidName').value.trim();
   const coins=parseInt(document.getElementById('bidCoins').value);
@@ -209,7 +291,8 @@ function manualBid(){
   if(!name){shake('bidName');return;}
   if(!coins||coins<c.minimum){shake('bidCoins');return;}
   addBid(name,'',coins,'Manuell');
-  document.getElementById('bidName').value='';document.getElementById('bidCoins').value='';
+  document.getElementById('bidName').value='';
+  document.getElementById('bidCoins').value='';
   document.getElementById('bidName').focus();
 }
 
@@ -220,11 +303,15 @@ function addBid(name,avatar,coins,gift){
   const ex=bidders.find(b=>b.name===name);
   if(ex){if(coins>ex.coins){ex.coins=coins;ex.gift=gift;}else return;}
   else bidders.push({name,avatar,coins,gift,emoji:fb[Math.floor(Math.random()*fb.length)]});
-  bidders.sort((a,b)=>b.coins-a.coins);renderBidders();pushState();
-  addLog('g',`🎁 ${name}: ${coins} Coins`);
+  bidders.sort((a,b)=>b.coins-a.coins);
+  renderBidders();pushState();
+  addLog('g','🎁 '+name+': '+coins+' Coins');
 }
 
-function removeBid(name){bidders=bidders.filter(b=>b.name!==name);renderBidders();pushState();}
+function removeBid(name){
+  bidders=bidders.filter(b=>b.name!==name);
+  renderBidders();pushState();
+}
 
 function renderBidders(){
   const list=document.getElementById('blist');
@@ -233,23 +320,37 @@ function renderBidders(){
   if(!bidders.length){list.innerHTML='<div class="empty">Noch keine Gebote</div>';return;}
   list.innerHTML=bidders.map((b,i)=>{
     const cls=i===0?'r1':i===1?'r2':i===2?'r3':'';
-    return`<div class="brow ${cls}"><span class="brank">${medals[i]||''}</span><span class="bname">${esc(b.name)}</span><span class="bgift">${esc(b.gift||'')}</span><span class="bcoins">${b.coins.toLocaleString('de-DE')} 🪙</span><button class="bdel" onclick="removeBid('${esc(b.name)}')" title="Entfernen">✕</button></div>`;
+    return'<div class="brow '+cls+'"><span class="brank">'+(medals[i]||'')+'</span><span class="bname">'+esc(b.name)+'</span><span class="bcoins">'+b.coins.toLocaleString('de-DE')+' 🪙</span><button class="bdel" onclick="removeBid(\''+esc(b.name)+'\')">✕</button></div>';
   }).join('');
 }
 
+// ══ KEYBOARD ═══════════════════════════════════
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT')return;
   if(e.key===' '){e.preventDefault();phase==='idle'||phase==='ended'?doStart():doPause();}
-  if(e.key==='r')doReset();if(e.key==='s')doSnipe();
+  if(e.key==='r')doReset();
+  if(e.key==='s')doSnipe();
 });
 document.getElementById('bidCoins').addEventListener('keydown',e=>{if(e.key==='Enter')manualBid();});
 document.getElementById('bidName').addEventListener('keydown',e=>{if(e.key==='Enter')manualBid();});
 
-function addLog(type,msg){const log=document.getElementById('log');const t=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});const d=document.createElement('div');d.className=type;d.textContent=`[${t}] ${msg}`;log.appendChild(d);log.scrollTop=log.scrollHeight;while(log.children.length>100)log.removeChild(log.firstChild);}
+function addLog(t,m){
+  const l=document.getElementById('log');
+  const d=document.createElement('div');d.className=t;
+  const tm=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  d.textContent='['+tm+'] '+m;l.appendChild(d);l.scrollTop=l.scrollHeight;
+  while(l.children.length>100)l.removeChild(l.firstChild);
+}
 function shake(id){const el=document.getElementById(id);el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',700);}
 function esc(s){return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));}
 
-loadSettings();setClock(getCfg().duration);setPhaseUI('idle');pushState();addLog('i','Controller gestartet');
+// ══ INIT ═══════════════════════════════════════
+updateLink();
+setClock(getCfg().duration);
+setPhaseUI('idle');
+addLog('i','Controller bereit!');
+// Push state every second so overlay stays in sync
+setInterval(pushState,1000);
 </script>
 </body>
 </html>
