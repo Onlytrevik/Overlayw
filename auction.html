@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>TikTok Auction</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{--bg:#0a0a0a;--surface:#141414;--card:#1a1a1a;--border:#242424;--gold:#FFD700;--green:#00C853;--red:#FF5252;--blue:#1565C0;--purple:#7c2adc;--text:#fff;--muted:rgba(255,255,255,0.4);}
+
+  body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);display:flex;min-height:100vh;}
+
+  /* ══ LEFT: CONTROLLER ══════════════════════════ */
+  .controller{width:380px;flex-shrink:0;padding:20px;border-right:1px solid var(--border);overflow-y:auto;min-height:100vh;}
+
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+  .logo{background:#FE2C55;color:#fff;font-size:16px;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .logo-row h1{font-size:16px;font-weight:800;}
+  .logo-row p{font-size:10px;color:var(--muted);margin-top:1px;}
+
+  .section{margin-bottom:16px;}
+  .sec-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+  .sec-title::before{content:'';width:3px;height:12px;background:var(--gold);border-radius:2px;}
+
+  /* STATUS CLOCK */
+  .ctrl-clock{font-family:'Orbitron',monospace;font-size:44px;font-weight:900;color:var(--green);letter-spacing:2px;line-height:1;margin-bottom:6px;transition:color .3s;}
+  .ctrl-clock.snipe{color:#c47fff;}.ctrl-clock.urgent{color:var(--red)!important;animation:shake .4s infinite;}.ctrl-clock.idle{color:#2a2a2a;}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+  .ctrl-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;transition:all .3s;}
+  .ctrl-pill.auction{background:rgba(0,200,83,.12);color:var(--green);border:1px solid rgba(0,200,83,.3);}
+  .ctrl-pill.snipe{background:rgba(124,42,220,.15);color:#c47fff;border:1px solid rgba(124,42,220,.4);}
+  .ctrl-pill.ended{background:rgba(255,82,82,.1);color:var(--red);border:1px solid rgba(255,82,82,.3);}
+  .ctrl-pill.idle{background:var(--surface);color:var(--muted);border:1px solid var(--border);}
+  .pdot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:blink 1.2s infinite;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}
+  .stat{background:var(--surface);border-radius:9px;padding:8px;text-align:center;border:1px solid var(--border);}
+  .sv{font-size:18px;font-weight:900;}.sl{font-size:9px;color:var(--muted);font-weight:600;margin-top:1px;}
+
+  /* INPUTS */
+  .ig{margin-bottom:8px;}
+  .il{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;display:block;}
+  .ir{display:flex;align-items:center;gap:6px;}
+  input[type=number],input[type=text]{background:var(--surface);border:1px solid var(--border);border-radius:9px;color:var(--gold);font-size:14px;font-weight:800;font-family:'Inter',sans-serif;padding:8px 11px;width:100%;outline:none;transition:border-color .2s;}
+  input[type=number]:focus,input[type=text]:focus{border-color:var(--gold);}
+  input[type=text]{color:var(--text);}
+  .unit{font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap;}
+
+  /* BUTTONS */
+  .br{display:flex;gap:6px;margin-top:5px;}
+  .btn{flex:1;padding:11px 8px;border-radius:11px;border:none;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
+  .btn:active{transform:scale(.96);}.btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important;}
+  .g{background:var(--green);color:#000;}.g:hover:not(:disabled){background:#00E676;}
+  .r{background:rgba(255,82,82,.15);color:var(--red);border:1px solid rgba(255,82,82,.3);}.r:hover:not(:disabled){background:rgba(255,82,82,.25);}
+  .gr{background:var(--surface);color:var(--muted);border:1px solid var(--border);}.gr:hover:not(:disabled){background:#222;color:var(--text);}
+  .p{background:rgba(124,42,220,.2);color:#c47fff;border:1px solid rgba(124,42,220,.4);}.p:hover:not(:disabled){background:rgba(124,42,220,.35);}
+  .bb{background:var(--blue);color:#fff;border:none;}.bb:hover:not(:disabled){background:#1976D2;}
+  .btn-add{background:var(--blue);color:#fff;border:none;border-radius:9px;font-size:18px;padding:0 14px;cursor:pointer;transition:all .15s;flex-shrink:0;}
+  .btn-add:hover{background:#1976D2;}.btn-add:active{transform:scale(.94);}
+
+  /* BIDDER LIST */
+  .blist{display:flex;flex-direction:column;gap:5px;min-height:30px;}
+  .brow{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 10px;}
+  .brow.r1{border-color:#B8860B;background:#1a1400;}.brow.r2{border-color:#444;}.brow.r3{border-color:#5a3020;background:#130c08;}
+  .brank{font-size:16px;flex-shrink:0;}.bname{flex:1;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .bcoins{font-size:12px;font-weight:800;color:var(--gold);}
+  .bdel{background:none;border:none;color:#555;font-size:14px;cursor:pointer;padding:2px 5px;border-radius:5px;flex-shrink:0;}
+  .bdel:hover{background:rgba(255,82,82,.15);color:var(--red);}
+  .empty{text-align:center;color:var(--muted);font-size:11px;padding:12px 0;}
+
+  /* LOG */
+  .log{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 10px;height:90px;overflow-y:auto;font-size:10px;line-height:1.8;font-family:monospace;color:var(--muted);}
+  .log .g{color:var(--gold);}.log .i{color:#4fc3f7;}.log .s{color:#c47fff;}.log .e{color:var(--red);}
+
+  .saved{display:none;background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.3);border-radius:7px;padding:6px 10px;color:var(--green);font-size:11px;font-weight:700;text-align:center;margin-top:6px;}
+
+  /* ══ RIGHT: OVERLAY ════════════════════════════ */
+  .overlay-wrap{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:20px;background:#0a0a0a;}
+
+  /* Overlay label */
+  .overlay-hint{font-size:10px;color:rgba(255,255,255,.2);text-align:center;margin-bottom:10px;letter-spacing:1px;text-transform:uppercase;}
+
+  .overlay{background:#111;border-radius:18px;padding:14px 14px 12px;border:1.5px solid #1e1e1e;width:300px;}
+
+  .top-bar{display:flex;align-items:center;justify-content:center;gap:8px;background:#1a1a1a;border-radius:10px;padding:8px 14px;margin-bottom:8px;border:1px solid #252525;}
+  .minimum-label{color:#FFD700;font-size:13px;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+  .minimum-value{display:flex;align-items:center;gap:5px;background:#2a2200;border:1.5px solid #FFD700;border-radius:20px;padding:3px 10px 3px 6px;}
+  .coin-icon{width:18px;height:18px;background:radial-gradient(circle at 35% 35%,#FFE566,#FFD700,#B8860B);border-radius:50%;flex-shrink:0;box-shadow:0 0 6px rgba(255,215,0,.4);}
+  .minimum-num{color:#FFD700;font-size:15px;font-weight:900;}
+
+  .phase-bar-ov{display:flex;align-items:center;justify-content:center;gap:10px;border-radius:10px;padding:7px 14px;margin-bottom:10px;border:1px solid #1a3a5c;background:#0d1a2a;transition:background .5s,border-color .5s;}
+  .phase-bar-ov.snipe-mode{background:#1a0d2a;border-color:#7c2adc;animation:snipeBorder 1s ease-in-out infinite;}
+  @keyframes snipeBorder{0%,100%{border-color:#5c1a8c}50%{border-color:#ac4afc}}
+  .phase-dot-ov{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:#4fc3f7;box-shadow:0 0 8px #4fc3f7;animation:dotBlink 1.5s ease-in-out infinite;transition:background .5s;}
+  .phase-dot-ov.snipe{background:#c47fff;box-shadow:0 0 8px #c47fff;}
+  @keyframes dotBlink{0%,100%{opacity:1}50%{opacity:.3}}
+  .phase-label-ov{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#b0d4f1;transition:color .5s;}
+  .phase-label-ov.snipe{color:#d4b0f1;}
+  .phase-badge-ov{font-size:13px;font-weight:900;padding:3px 10px;border-radius:8px;letter-spacing:1px;color:#fff;background:#1565C0;transition:background .5s;}
+  .phase-badge-ov.snipe{background:#6a0dad;}
+
+  .countdown-wrap{text-align:center;margin-bottom:4px;}
+  .countdown{font-family:'Orbitron',monospace;font-size:56px;font-weight:900;color:#00E676;line-height:1;letter-spacing:4px;text-shadow:0 0 20px rgba(0,230,118,.5);transition:color .4s;}
+  .countdown.snipe-mode{color:#c47fff;text-shadow:0 0 20px rgba(196,127,255,.5);}
+  .countdown.urgent{color:#FF5252!important;text-shadow:0 0 20px rgba(255,82,82,.7)!important;animation:shakeCd .45s ease-in-out infinite;}
+  .countdown.idle{color:#2a2a2a;text-shadow:none;}
+  @keyframes shakeCd{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+  .phase-sub-ov{text-align:center;font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:transparent;margin-bottom:10px;min-height:14px;transition:color .4s;}
+  .phase-sub-ov.visible{color:#9c3adc;}
+
+  .ended-banner{display:none;text-align:center;background:rgba(254,44,85,.12);border:1px solid rgba(254,44,85,.35);border-radius:10px;padding:8px;margin-bottom:10px;color:#FE2C55;font-size:13px;font-weight:800;letter-spacing:1px;}
+
+  .bidders{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;min-height:36px;}
+  .bidder-row{display:flex;align-items:center;gap:8px;background:#1a1a1a;border-radius:12px;padding:8px 10px;border:1px solid #252525;animation:slideIn .35s cubic-bezier(.22,.68,0,1.2);}
+  @keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+  .bidder-row.rank-1{border-color:#B8860B;background:#1a1400;}
+  .bidder-row.rank-2{border-color:#555;background:#161616;}
+  .bidder-row.rank-3{border-color:#6B3A2A;background:#150d0a;}
+  .rank-badge{font-size:18px;flex-shrink:0;}
+  .avatar-ov{width:34px;height:34px;border-radius:50%;background:#2a2a2a;border:2px solid #333;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;overflow:hidden;}
+  .avatar-ov img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .avatar-ov.rank-1{border-color:#FFD700;}.avatar-ov.rank-2{border-color:#aaa;}.avatar-ov.rank-3{border-color:#CD7F32;}
+  .bidder-info{flex:1;min-width:0;}
+  .bidder-name{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;}
+  .bidder-sub-ov{font-size:10px;color:rgba(255,255,255,.3);margin-top:1px;}
+  .bidder-amount{display:flex;align-items:center;gap:4px;margin-top:2px;}
+  .bid-num{font-size:14px;font-weight:800;color:#FFD700;}
+  .bid-coin{width:12px;height:12px;background:radial-gradient(circle at 35% 35%,#FFE566,#FFD700,#B8860B);border-radius:50%;flex-shrink:0;}
+  .empty-state{text-align:center;color:rgba(255,255,255,.15);font-size:12px;padding:14px 0;}
+  .total-bar{text-align:center;color:rgba(255,255,255,.3);font-size:11px;font-weight:600;}
+  .total-bar span{color:rgba(255,255,255,.6);}
+</style>
+</head>
+<body>
+
+<!-- ══ CONTROLLER (links) ══════════════════════ -->
+<div class="controller">
+  <div class="logo-row">
+    <div class="logo">♟</div>
+    <div><h1>Auction Controller</h1><p>Steuerung → Overlay rechts wird sofort aktualisiert</p></div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="section">
+    <div class="sec-title">Status</div>
+    <div class="ctrl-clock idle" id="ctrlClock">0:00</div>
+    <div class="ctrl-pill idle" id="ctrlPill"><div class="pdot"></div><span id="pillTxt">Bereit</span></div>
+    <div class="stats">
+      <div class="stat"><div class="sv" id="sBidders">0</div><div class="sl">Bieter</div></div>
+      <div class="stat"><div class="sv" id="sTop">—</div><div class="sl">Top Coins</div></div>
+      <div class="stat"><div class="sv" id="sPhase">—</div><div class="sl">Phase</div></div>
+    </div>
+    <div class="br">
+      <button class="btn g" id="btnStart" onclick="doStart()">▶ START</button>
+      <button class="btn p" id="btnSnipe" onclick="doSnipe()" disabled>⚡ SNIPE</button>
+    </div>
+    <div class="br" style="margin-top:6px;">
+      <button class="btn gr" id="btnPause" onclick="doPause()">⏸ PAUSE</button>
+      <button class="btn r" onclick="doReset()">↺ RESET</button>
+    </div>
+  </div>
+
+  <!-- EINSTELLUNGEN -->
+  <div class="section">
+    <div class="sec-title">Einstellungen</div>
+    <div class="ig"><label class="il">⏱ Auktions-Dauer</label><div class="ir"><input type="number" id="cfgDuration" value="60" min="10" max="3600"><span class="unit">Sek.</span></div></div>
+    <div class="ig"><label class="il">⚡ Snipe Delay</label><div class="ir"><input type="number" id="cfgSnipe" value="30" min="5" max="600"><span class="unit">Sek.</span></div></div>
+    <div class="ig"><label class="il">🪙 Minimum Coins</label><div class="ir"><input type="number" id="cfgMin" value="1" min="1"><span class="unit">Coins</span></div></div>
+    <button class="btn bb" style="width:100%;padding:11px;margin-top:4px;" onclick="applySettings()">✓ Übernehmen</button>
+    <div class="saved" id="saved">✅ Overlay aktualisiert!</div>
+  </div>
+
+  <!-- MANUELLES GEBOT -->
+  <div class="section">
+    <div class="sec-title">Gebot hinzufügen</div>
+    <div style="display:flex;gap:6px;">
+      <input type="text"   id="bidName"  placeholder="TikTok Name" maxlength="40" style="flex:1.5;">
+      <input type="number" id="bidCoins" placeholder="Coins" min="1" style="width:80px;flex:0 0 80px;">
+      <button class="btn-add" onclick="manualBid()">+</button>
+    </div>
+  </div>
+
+  <!-- BIETER -->
+  <div class="section">
+    <div class="sec-title">Aktuelle Bieter</div>
+    <div class="blist" id="blist"><div class="empty">Noch keine Gebote</div></div>
+  </div>
+
+  <!-- LOG -->
+  <div class="section">
+    <div class="sec-title">Log</div>
+    <div class="log" id="log">Bereit…</div>
+  </div>
+</div>
+
+<!-- ══ OVERLAY (rechts) ════════════════════════ -->
+<div class="overlay-wrap">
+  <div>
+    <div class="overlay-hint">▼ Das wird in TikTok LIVE Studio angezeigt ▼</div>
+    <div class="overlay">
+      <div class="top-bar">
+        <span class="minimum-label">MINIMUM :</span>
+        <div class="minimum-value"><div class="coin-icon"></div><span class="minimum-num" id="ovMin">1</span></div>
+      </div>
+      <div class="phase-bar-ov" id="ovPhaseBar">
+        <div class="phase-dot-ov" id="ovPhaseDot"></div>
+        <span class="phase-label-ov" id="ovPhaseLabel">AUKTION</span>
+        <span class="phase-badge-ov" id="ovPhaseBadge">60S</span>
+      </div>
+      <div class="countdown-wrap">
+        <div class="countdown idle" id="ovCd">1:00</div>
+      </div>
+      <div class="phase-sub-ov" id="ovPhaseSub"></div>
+      <div class="ended-banner" id="ovEnded">🏁 AUKTION BEENDET</div>
+      <div class="bidders" id="ovBidders"><div class="empty-state">Warte auf Geschenke… 🎁</div></div>
+      <div class="total-bar">🏆 Total participants: <span id="ovTotal">0</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ STATE ══════════════════════════════════════
+let bidders=[],timeLeft=60,phase='idle',timer=null,paused=false;
+const medals=['🥇','🥈','🥉'];
+const fb=['🎮','👑','🔥','💎','🦁','⭐','🐯','🎯','🌟','🚀'];
+
+function getCfg(){return{duration:parseInt(document.getElementById('cfgDuration').value)||60,snipe:parseInt(document.getElementById('cfgSnipe').value)||30,minimum:parseInt(document.getElementById('cfgMin').value)||1};}
+
+function applySettings(){
+  const c=getCfg();
+  document.getElementById('ovMin').textContent=c.minimum;
+  document.getElementById('ovPhaseBadge').textContent=c.snipe+'S';
+  if(phase==='idle'){timeLeft=c.duration;updateBoth(timeLeft);}
+  const el=document.getElementById('saved');el.style.display='block';
+  setTimeout(()=>el.style.display='none',2000);
+  addLog('i',`Gespeichert: ${c.duration}s | Snipe ${c.snipe}s | Min ${c.minimum}`);
+}
+
+// ══ TIMER ══════════════════════════════════════
+function doStart(){
+  if(phase==='auction'||phase==='snipe')return;
+  const c=getCfg();phase='auction';timeLeft=c.duration;paused=false;
+  document.getElementById('btnStart').disabled=true;
+  document.getElementById('btnSnipe').disabled=false;
+  document.getElementById('btnPause').textContent='⏸ PAUSE';
+  setPhase('auction');clearInterval(timer);
+  timer=setInterval(tick,1000);updateBoth(timeLeft);
+  addLog('i',`Auktion gestartet (${c.duration}s)`);
+}
+
+function doPause(){
+  if(phase!=='auction'&&phase!=='snipe')return;
+  paused=!paused;
+  document.getElementById('btnPause').textContent=paused?'▶ WEITER':'⏸ PAUSE';
+}
+
+function doSnipe(){
+  const c=getCfg();phase='snipe';timeLeft=c.snipe;
+  setPhase('snipe');updateBoth(timeLeft);
+  addLog('s',`⚡ Snipe Delay! (${c.snipe}s)`);
+}
+
+function doReset(){
+  clearInterval(timer);phase='idle';paused=false;bidders=[];
+  timeLeft=getCfg().duration;
+  document.getElementById('btnStart').disabled=false;
+  document.getElementById('btnSnipe').disabled=true;
+  document.getElementById('btnPause').textContent='⏸ PAUSE';
+  setPhase('idle');updateBoth(timeLeft);
+  renderBidders();addLog('i','Reset');
+}
+
+function tick(){
+  if(paused)return;timeLeft--;updateBoth(timeLeft);
+  if(phase==='auction'&&timeLeft<=0){
+    const c=getCfg();phase='snipe';timeLeft=c.snipe;
+    setPhase('snipe');updateBoth(timeLeft);
+    addLog('s',`⚡ Snipe Delay! (${c.snipe}s)`);
+  } else if(phase==='snipe'&&timeLeft<=0){
+    clearInterval(timer);phase='ended';setPhase('ended');
+    document.getElementById('btnStart').disabled=false;
+    document.getElementById('btnSnipe').disabled=true;
+    const w=bidders[0];
+    addLog('i',w?`🏆 Gewinner: ${w.name} (${w.coins} Coins)`:'Keine Gebote');
+  }
+}
+
+// ══ CLOCK UPDATE (Controller + Overlay gleichzeitig) ══
+function updateBoth(s){
+  const m=Math.floor(Math.abs(s)/60),ss=Math.abs(s)%60;
+  const fmt=m+':'+String(ss).padStart(2,'0');
+
+  // Controller clock
+  const cc=document.getElementById('ctrlClock');
+  cc.textContent=fmt;cc.className='ctrl-clock';
+  if(phase==='snipe'&&s>10)cc.classList.add('snipe');
+  else if(s<=10&&s>0&&phase!=='idle'&&phase!=='ended')cc.classList.add('urgent');
+  else if(phase==='idle'||phase==='ended')cc.classList.add('idle');
+  document.getElementById('sPhase').textContent=phase==='auction'?'Auktion':phase==='snipe'?'Snipe':phase==='ended'?'Ende':'—';
+
+  // Overlay clock
+  const oc=document.getElementById('ovCd');
+  oc.textContent=fmt;oc.className='countdown';
+  if(phase==='snipe'&&s>10)oc.classList.add('snipe-mode');
+  else if(s<=10&&s>0&&phase!=='idle'&&phase!=='ended')oc.classList.add('urgent');
+  else if(phase==='idle'||phase==='ended')oc.classList.add('idle');
+}
+
+// ══ PHASE UI ═══════════════════════════════════
+function setPhase(p){
+  // Controller pill
+  const pill=document.getElementById('ctrlPill'),ptxt=document.getElementById('pillTxt');
+  pill.className='ctrl-pill '+p;
+  ptxt.textContent=p==='auction'?'Auktion läuft':p==='snipe'?'⚡ Snipe Delay':p==='ended'?'Beendet':'Bereit';
+
+  // Overlay phase bar
+  const bar=document.getElementById('ovPhaseBar');
+  const dot=document.getElementById('ovPhaseDot');
+  const lbl=document.getElementById('ovPhaseLabel');
+  const badge=document.getElementById('ovPhaseBadge');
+  const sub=document.getElementById('ovPhaseSub');
+  const ended=document.getElementById('ovEnded');
+  const c=getCfg();
+
+  ended.style.display='none';
+  if(p==='auction'){
+    bar.className='phase-bar-ov';dot.className='phase-dot-ov';
+    lbl.className='phase-label-ov';lbl.textContent='AUKTION';
+    badge.className='phase-badge-ov';badge.textContent=c.duration+'S';
+    sub.className='phase-sub-ov';sub.textContent='';
+  } else if(p==='snipe'){
+    bar.className='phase-bar-ov snipe-mode';dot.className='phase-dot-ov snipe';
+    lbl.className='phase-label-ov snipe';lbl.textContent='SNIPE DELAY';
+    badge.className='phase-badge-ov snipe';badge.textContent=c.snipe+'S';
+    sub.className='phase-sub-ov visible';sub.textContent='⚡ BONUS ZEIT';
+  } else if(p==='ended'){
+    bar.className='phase-bar-ov';dot.className='phase-dot-ov';
+    lbl.className='phase-label-ov';lbl.textContent='BEENDET';
+    badge.className='phase-badge-ov';badge.textContent='—';
+    sub.className='phase-sub-ov';sub.textContent='';
+    ended.style.display='block';
+  } else {
+    bar.className='phase-bar-ov';dot.className='phase-dot-ov';
+    lbl.className='phase-label-ov';lbl.textContent='AUKTION';
+    badge.className='phase-badge-ov';badge.textContent=c.duration+'S';
+    sub.className='phase-sub-ov';sub.textContent='';
+  }
+}
+
+// ══ BIDS ═══════════════════════════════════════
+function manualBid(){
+  const name=document.getElementById('bidName').value.trim();
+  const coins=parseInt(document.getElementById('bidCoins').value);
+  const c=getCfg();
+  if(!name){shake('bidName');return;}
+  if(!coins||coins<c.minimum){shake('bidCoins');return;}
+  addBid(name,'',coins,'Manuell');
+  document.getElementById('bidName').value='';document.getElementById('bidCoins').value='';
+  document.getElementById('bidName').focus();
+}
+
+function addBid(name,avatar,coins,gift){
+  const c=getCfg();if(coins<c.minimum)return;
+  if(phase==='idle'||phase==='ended')doStart();
+  if(phase==='snipe'){timeLeft=c.snipe;updateBoth(timeLeft);}
+  const ex=bidders.find(b=>b.name===name);
+  if(ex){if(coins>ex.coins){ex.coins=coins;ex.gift=gift;}else return;}
+  else bidders.push({name,avatar,coins,gift,emoji:fb[Math.floor(Math.random()*fb.length)]});
+  bidders.sort((a,b)=>b.coins-a.coins);
+  renderBidders();addLog('g',`🎁 ${name}: ${coins} Coins`);
+}
+
+function removeBid(name){bidders=bidders.filter(b=>b.name!==name);renderBidders();}
+
+function renderBidders(){
+  // Controller list
+  const cl=document.getElementById('blist');
+  document.getElementById('sBidders').textContent=bidders.length;
+  document.getElementById('sTop').textContent=bidders[0]?bidders[0].coins.toLocaleString('de-DE'):'—';
+  cl.innerHTML=bidders.length?bidders.map((b,i)=>{
+    const cls=i===0?'r1':i===1?'r2':i===2?'r3':'';
+    return`<div class="brow ${cls}"><span class="brank">${medals[i]||''}</span><span class="bname">${esc(b.name)}</span><span class="bcoins">${b.coins.toLocaleString('de-DE')} 🪙</span><button class="bdel" onclick="removeBid('${esc(b.name)}')">✕</button></div>`;
+  }).join(''):'<div class="empty">Noch keine Gebote</div>';
+
+  // Overlay list
+  const ol=document.getElementById('ovBidders');
+  document.getElementById('ovTotal').textContent=bidders.length;
+  const top3=bidders.slice(0,3);
+  if(!top3.length){ol.innerHTML='<div class="empty-state">Warte auf Geschenke… 🎁</div>';return;}
+  ol.innerHTML=top3.map((b,i)=>{
+    const av=b.avatar?`<img src="${b.avatar}" onerror="this.replaceWith(document.createTextNode('${b.emoji||'🎮'}'))">`:( b.emoji||'🎮');
+    return`<div class="bidder-row rank-${i+1}">
+      <div class="rank-badge">${medals[i]}</div>
+      <div class="avatar-ov rank-${i+1}">${av}</div>
+      <div class="bidder-info">
+        <div class="bidder-name">${esc(b.name)}</div>
+        <div class="bidder-sub-ov">${esc(b.gift||'')}</div>
+        <div class="bidder-amount"><span class="bid-num">${b.coins.toLocaleString('de-DE')}</span><div class="bid-coin"></div></div>
+      </div></div>`;
+  }).join('');
+}
+
+// ══ KEYBOARD ═══════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(e.key===' '){e.preventDefault();phase==='idle'||phase==='ended'?doStart():doPause();}
+  if(e.key==='r')doReset();if(e.key==='s')doSnipe();
+});
+document.getElementById('bidCoins').addEventListener('keydown',e=>{if(e.key==='Enter')manualBid();});
+document.getElementById('bidName').addEventListener('keydown',e=>{if(e.key==='Enter')manualBid();});
+
+function addLog(t,m){const l=document.getElementById('log');const d=document.createElement('div');d.className=t;const tm=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});d.textContent=`[${tm}] ${m}`;l.appendChild(d);l.scrollTop=l.scrollHeight;while(l.children.length>80)l.removeChild(l.firstChild);}
+function shake(id){const el=document.getElementById(id);el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',700);}
+function esc(s){return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));}
+
+// Init
+updateBoth(getCfg().duration);setPhase('idle');addLog('i','Bereit!');
+</script>
+</body>
+</html>
